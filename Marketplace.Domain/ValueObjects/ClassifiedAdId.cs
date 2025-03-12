@@ -14,5 +14,6 @@ public record ClassifiedAdId
         _value = value;
     }
 
+    // Factory method, der konverterer en string til en ClassifiedAdId
     public static implicit operator Guid(ClassifiedAdId self) => self._value;
 }

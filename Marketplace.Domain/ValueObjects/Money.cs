@@ -35,7 +35,7 @@ public record Money
         Currency = currency;
     }
 
-    private Money(decimal amount, CurrencyDetails currency)
+    protected Money(decimal amount, CurrencyDetails currency)
     {
         Amount = amount;
         Currency = currency;

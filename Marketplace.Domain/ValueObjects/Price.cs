@@ -4,17 +4,21 @@ namespace Marketplace.Domain.ValueObjects;
 
 public record Price : Money
 {
-    public Price(decimal amount, string currencyCode, ICurrencyLookup currencyLookup)
+    // Constructor, der tager imod et decimal, en string og en ICurrencyLookup og kalder base-klassen
+    private Price(decimal amount, string currencyCode, ICurrencyLookup currencyLookup)
         : base(amount, currencyCode, currencyLookup)
     {
         if (amount < 0)
-        {
-            throw new ArgumentException("Price cannot be negative", nameof(amount));
-        }
+            throw new ArgumentException(
+                "Price cannot be negative",
+                nameof(amount));
     }
 
-    public static new Price FromDecimal(decimal amount, string currencyCode, ICurrencyLookup currencyLookup)
-    {
-        return new Price(amount, currencyCode, currencyLookup);
-    }
+    // Constructor, der tager imod et decimal og en string og kalder base-klassen
+    internal Price(decimal amount, string currencyCode)
+        : base(amount, new CurrencyDetails { CurrencyCode = currencyCode }) { }
+
+    public new static Price FromDecimal(decimal amount, string currency,
+        ICurrencyLookup currencyLookup) =>
+        new Price(amount, currency, currencyLookup);
 }
