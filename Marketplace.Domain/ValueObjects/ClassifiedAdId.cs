@@ -16,4 +16,7 @@ public record ClassifiedAdId
 
     // Factory method, der konverterer en string til en ClassifiedAdId
     public static implicit operator Guid(ClassifiedAdId self) => self._value;
+
+    public static implicit operator ClassifiedAdId(string value) 
+        => new ClassifiedAdId(Guid.Parse(value));
 }

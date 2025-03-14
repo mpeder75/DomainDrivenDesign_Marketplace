@@ -1,6 +1,7 @@
 ﻿using Marketplace.Domain.Exceptions;
 using Marketplace.Domain.ValueObjects;
-using Marketplace.Framework.Events;
+using Marketplace.Framework.DomainService;
+using Marketplace.Framework.DomainService;
 
 namespace Marketplace.Domain.Entities;
 

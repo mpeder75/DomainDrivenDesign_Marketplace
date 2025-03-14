@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace Marketplace.Framework.Events;
+namespace Marketplace.Framework.DomainService;
 
 public abstract class Entity
 {
@@ -12,9 +12,12 @@ public abstract class Entity
     // Metode til at håndtere state changes via events
     protected void Apply(object @event)
     {
-        When(@event);         // Opdaterer entitetstilstanden baseret på eventet
-        EnsureValidState();   
-        _events.Add(@event);  // Tilføjer eventet til listen af ændringer
+        // Opdaterer entitetstilstanden baseret på eventet
+        When(@event);         
+        EnsureValidState();
+        
+        // Tilføjer eventet til listen af ændringer
+        _events.Add(@event);  
     }
    
     // Abstrakt metode - hver entitet skal definere sin egen event-håndtering
