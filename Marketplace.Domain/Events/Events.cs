@@ -31,5 +31,22 @@
         {
             public Guid Id { get; set; }
         }
+
+        public class PictureAddedToAClassifiedAd
+        {
+            public Guid ClassifiedAdId { get; set; }
+            public Guid PictureId { get; set; }
+            public string Url { get; set; }
+            public int Height { get; set; }
+            public int Width { get; set; }
+            public int Order { get; set; } // Tilføj Order-egenskaben
+        }
+
+        public class ClassifiedAdPictureResized
+        {
+            public Guid PictureId { get; set; }
+            public int Height { get; set; }
+            public int Width { get; set; }
+        }
     }
 }

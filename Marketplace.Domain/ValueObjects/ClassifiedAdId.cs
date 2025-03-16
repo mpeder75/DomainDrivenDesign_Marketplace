@@ -1,6 +1,8 @@
-﻿namespace Marketplace.Domain.ValueObjects;
+﻿using Marketplace.Framework.Common;
 
-public record ClassifiedAdId
+namespace Marketplace.Domain.ValueObjects;
+
+public class ClassifiedAdId : Value<ClassifiedAdId>
 {
     private readonly Guid _value;
 

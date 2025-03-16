@@ -4,6 +4,7 @@ using Marketplace.Domain.Repositories;
 using Marketplace.Domain.Services;
 using Marketplace.Domain.ValueObjects;
 using Marketplace.Framework;
+using Marketplace.Framework.DomainService;
 using static Marketplace.Contracts.ClassifiedAds;
 
 namespace Marketplace.Api
@@ -12,20 +13,22 @@ namespace Marketplace.Api
     {
         private readonly IClassifiedAdRepository _repository;
         private readonly ICurrencyLookup _currencyLookup;
+        // Unit of work pattern
+        private readonly IUnitOfWork _unitOfWork;
 
-        public ClassifiedAdsApplicationService(IClassifiedAdRepository repository, ICurrencyLookup currencyLookup)
+        public ClassifiedAdsApplicationService(IClassifiedAdRepository repository, 
+            ICurrencyLookup currencyLookup, IUnitOfWork unitOfWork)
         {
             _repository = repository;
             _currencyLookup = currencyLookup;
+            _unitOfWork = unitOfWork;
         }
 
         public Task Handle(object command) =>
             command switch
             {
-                V1.Create cmd =>
-                    HandleCreate(cmd),
-                V1.SetTitle cmd =>
-                    HandleUpdate(
+                V1.Create cmd => HandleCreate(cmd),
+                V1.SetTitle cmd => HandleUpdate(
                         cmd.Id,
                         c => c.SetTitle(
                             ClassifiedAdTitle.FromString(cmd.Title)
@@ -57,17 +60,21 @@ namespace Marketplace.Api
                 _ => Task.CompletedTask
             };
 
+
         private async Task HandleCreate(V1.Create cmd)
         {
             if (await _repository.Exists(cmd.Id.ToString()))
-                throw new InvalidOperationException($"Entity with id {cmd.Id} already exists");
+                throw new InvalidOperationException($"DomainEntity with id {cmd.Id} already exists");
 
             var classifiedAd = new ClassifiedAd(
                 new ClassifiedAdId(cmd.Id),
                 new UserId(cmd.OwnerId)
             );
 
-            await _repository.Save(classifiedAd);
+            // Repository pattern bruges
+            await _repository.Add(classifiedAd);
+            // Unit of work pattern bruges
+            await _unitOfWork.Commit();
         }
 
         private async Task HandleUpdate(Guid classifiedAdId, Action<ClassifiedAd> operation)
@@ -76,12 +83,13 @@ namespace Marketplace.Api
 
             if (classifiedAd == null)
                 throw new InvalidOperationException(
-                    $"Entity with id {classifiedAdId} cannot be found"
+                    $"DomainEntity with id {classifiedAdId} cannot be found"
                 );
 
             operation(classifiedAd);
 
-            await _repository.Save(classifiedAd);
+            // Unit of work pattern bruges
+            await _unitOfWork.Commit();
         }
     }
 }
