@@ -1,12 +1,32 @@
 using Marketplace.Api;
-using Marketplace.API;
+using Marketplace.Domain.Repositories;
+using Marketplace.Domain.Services;
+using Marketplace.Framework;
+using Marketplace.Infrastructure;
+using Raven.Client.Documents;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddControllers(); 
-// Tilføj en singleton service til ClassifiedAdsApplicationService
-builder.Services.AddSingleton<ClassifiedAdsApplicationService>(); 
+// Document store tilføjes til DI-containeren
+var store = new DocumentStore()
+{
+    Urls = new[] { "http://localhost:8080" },
+    Database = "Marketplace_Chapter8",
+    Conventions =
+    {
+        FindIdentityProperty = m => m.Name == "_databaseId"
+    }
+};
+store.Initialize();
+
+builder.Services.AddSingleton<ICurrencyLookup, FixedCurrencyLookup>();
+// Document store registreres som en singleton
+builder.Services.AddScoped(c => store.OpenAsyncSession());
+// Unit of work registreres som en scoped service
+builder.Services.AddScoped<IUnitOfWork, RavenDbUnitOfWork>();
+builder.Services.AddScoped<IClassifiedAdRepository, ClassifiedAdRepository>();
+builder.Services.AddScoped<ClassifiedAdsApplicationService>();
+builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -26,7 +46,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
-
 app.UseHttpsRedirection();
-
 app.Run();

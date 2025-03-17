@@ -2,9 +2,8 @@
 
 namespace Marketplace.Domain.ValueObjects;
 
-public record Price : Money
+public class Price : Money
 {
-    // Constructor, der tager imod et decimal, en string og en ICurrencyLookup og kalder base-klassen
     private Price(decimal amount, string currencyCode, ICurrencyLookup currencyLookup)
         : base(amount, currencyCode, currencyLookup)
     {
@@ -14,11 +13,15 @@ public record Price : Money
                 nameof(amount));
     }
 
-    // Constructor, der tager imod et decimal og en string og kalder base-klassen
     internal Price(decimal amount, string currencyCode)
-        : base(amount, new CurrencyDetails { CurrencyCode = currencyCode }) { }
+        : base(amount, new Currency{CurrencyCode = currencyCode})
+    {
+    }
 
     public new static Price FromDecimal(decimal amount, string currency,
         ICurrencyLookup currencyLookup) =>
         new Price(amount, currency, currencyLookup);
+        
+    // Satisfy the serialization requirements 
+    protected Price() { }
 }

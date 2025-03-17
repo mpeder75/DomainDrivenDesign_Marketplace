@@ -1,5 +1,8 @@
 ﻿using Marketplace.Api;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
+using ILogger = Serilog.ILogger;
+
 
 namespace Marketplace.API
 {
@@ -7,10 +10,10 @@ namespace Marketplace.API
     public class ClassifiedAdsCommandsApiController : Controller
     {
         private readonly ClassifiedAdsApplicationService _applicationService;
-
+        private static ILogger Log = Serilog.Log.ForContext<ClassifiedAdsCommandsApiController>();
+        
         public ClassifiedAdsCommandsApiController(ClassifiedAdsApplicationService applicationService) 
             => _applicationService = applicationService;
-
         
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Contracts.ClassifiedAds.V1.Create request)
@@ -50,6 +53,21 @@ namespace Marketplace.API
         {
             await _applicationService.Handle(request);
             return Ok();
+        }
+
+        private async Task<IActionResult> HandleRequest<T>(T request, Func<T, Task> handler)
+        {
+            try
+            {
+                Log.Debug("Handling HTTP request of type {type}", typeof(T).Name);
+                await handler(request);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Error handling the request");
+                return new BadRequestObjectResult(new {error = e.Message, stackTrace = e.StackTrace});
+            }
         }
     }
 }
