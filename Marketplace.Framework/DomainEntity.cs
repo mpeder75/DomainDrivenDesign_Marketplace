@@ -6,6 +6,7 @@ namespace Marketplace.Framework;
 public abstract class DomainEntity<TId> : IInternalEventHandler where TId : Value<TId>
 {
     private readonly Action<object> _applier;
+
     public TId Id { get; protected set; }
 
     protected DomainEntity(Action<object> applier)
@@ -26,3 +27,4 @@ public abstract class DomainEntity<TId> : IInternalEventHandler where TId : Valu
         _applier(@event);
     }
 }
+

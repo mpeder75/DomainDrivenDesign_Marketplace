@@ -8,6 +8,9 @@ public class Money : Value<Money>
     public decimal Amount { get; }
     public Currency Currency { get; }
 
+    // protected constructor for serialization
+    protected Money() { }
+
     protected Money(decimal amount, string currencyCode, ICurrencyLookup currencyLookup)
     {
         if (string.IsNullOrEmpty(currencyCode))
@@ -31,11 +34,6 @@ public class Money : Value<Money>
     {
         Amount = amount;
         Currency = currency;
-    }
-
-    // Satisfy the serialization requirements 
-    protected Money()
-    {
     }
 
     public static Money FromDecimal(decimal amount, string currency, ICurrencyLookup currencyLookup)

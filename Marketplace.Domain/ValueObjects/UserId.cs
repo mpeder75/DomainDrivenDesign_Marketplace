@@ -2,7 +2,7 @@
 
 public record UserId
 {
-    private readonly Guid _value;
+    private Guid Value { get; set; }
 
     public UserId(Guid value)
     {
@@ -11,9 +11,9 @@ public record UserId
             throw new ArgumentNullException("User id cannot be empty", nameof(value));
         }
 
-        _value = value;
+        Value = value;
     }
 
-    public static implicit operator Guid(UserId self) => self._value;
+    public static implicit operator Guid(UserId self) => self.Value;
 
 }

@@ -2,7 +2,11 @@
 
 public record ClassifiedAdText
 {
+    
     public string Value { get; }
+
+    // protected constructor for serialization
+    protected ClassifiedAdText() { }
 
     // Constructor, der tager imod en string og sætter Value til den modtagne string
     internal ClassifiedAdText(string text) => Value = text;

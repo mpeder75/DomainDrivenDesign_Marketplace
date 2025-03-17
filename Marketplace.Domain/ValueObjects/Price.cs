@@ -4,8 +4,11 @@ namespace Marketplace.Domain.ValueObjects;
 
 public class Price : Money
 {
+    // Satisfy the serialization requirements 
+    protected Price() { }
+
     private Price(decimal amount, string currencyCode, ICurrencyLookup currencyLookup)
-        : base(amount, currencyCode, currencyLookup)
+        : base(amount, currencyCode, currencyLookup) 
     {
         if (amount < 0)
             throw new ArgumentException(
@@ -21,7 +24,4 @@ public class Price : Money
     public new static Price FromDecimal(decimal amount, string currency,
         ICurrencyLookup currencyLookup) =>
         new Price(amount, currency, currencyLookup);
-        
-    // Satisfy the serialization requirements 
-    protected Price() { }
 }

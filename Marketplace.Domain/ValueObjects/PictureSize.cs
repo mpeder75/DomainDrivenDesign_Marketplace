@@ -7,6 +7,10 @@ public class PictureSize : Value<PictureSize>
     public int Width { get; internal set; }
     public int Height { get; internal set; }
 
+    
+    // protected constructor for serialization
+    protected PictureSize() { }
+
     public PictureSize(int width, int height)
     {
         if (Width <= 0)
@@ -23,5 +27,5 @@ public class PictureSize : Value<PictureSize>
         Height = height;
     }
     
-    internal PictureSize() { }
+    
 }

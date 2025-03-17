@@ -6,6 +6,10 @@ public record ClassifiedAdTitle
 {
     public string Value { get; }
 
+    // protected constructor for serialization
+    protected ClassifiedAdTitle() { }
+
+
     // Constructor, der tager imod en string og sætter Value til den modtagne string
     internal ClassifiedAdTitle(string value)
     {

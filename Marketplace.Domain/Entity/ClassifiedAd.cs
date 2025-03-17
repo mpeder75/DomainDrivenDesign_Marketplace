@@ -7,6 +7,14 @@ namespace Marketplace.Domain.Entities;
 
 public class ClassifiedAd : AggregateRoot<ClassifiedAdId>
 {
+    // full prop, der håndtere persistence med RavenDb
+    private string DbId
+    {
+        get => $"ClassifiedAd/{Id.Value}";
+        set {}
+    }
+
+    // Aggregate state properties
     public ClassifiedAdId Id { get; private set; }
     public UserId OwnerId { get; private set; }
     public ClassifiedAdTitle Title { get; private set; }
@@ -14,13 +22,11 @@ public class ClassifiedAd : AggregateRoot<ClassifiedAdId>
     public Price Price { get; private set; }
     public ClassifiedAdState State { get; private set; }
     public UserId ApprovedBy { get; private set; }
-    // Liste af billeder
     public List<Picture> Pictures { get; private set; }
 
-
+   
     public ClassifiedAd(ClassifiedAdId id, UserId ownerId)
     {
-        // Initialiser listen af billeder
         Pictures = new List<Picture>();
 
         Apply(new Events.Events.ClassifiedAdCreated

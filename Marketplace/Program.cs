@@ -8,13 +8,13 @@ using Raven.Client.Documents;
 var builder = WebApplication.CreateBuilder(args);
 
 // Document store tilføjes til DI-containeren
-var store = new DocumentStore()
+var store = new DocumentStore
 {
-    Urls = new[] { "http://localhost:8080" },
+    Urls = new[] {"http://localhost:8080"},
     Database = "Marketplace_Chapter8",
     Conventions =
     {
-        FindIdentityProperty = m => m.Name == "_databaseId"
+        FindIdentityProperty = x => x.Name == "DbId"
     }
 };
 store.Initialize();
