@@ -1,5 +1,4 @@
-﻿using Marketplace.Domain.Services;
-using Marketplace.Domain.ValueObjects;
+﻿using Marketplace.Domain.Shared;
 
 namespace Marketplace.Tests.Fakes;
 

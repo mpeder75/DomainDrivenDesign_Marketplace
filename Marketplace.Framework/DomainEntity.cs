@@ -1,5 +1,4 @@
-﻿using Marketplace.Framework.Common;
-using Marketplace.Framework.Events;
+﻿using Marketplace.Framework.Events;
 
 namespace Marketplace.Framework;
 

@@ -1,6 +1,7 @@
-using Marketplace.Api;
-using Marketplace.Domain.Repositories;
+using Marketplace.ClassifiedAd;
+using Marketplace.Domain.ClassifiedAd;
 using Marketplace.Domain.Services;
+using Marketplace.Domain.Shared;
 using Marketplace.Framework;
 using Marketplace.Infrastructure;
 using Raven.Client.Documents;
@@ -32,7 +33,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
-        Title = "ClassifiedAds",
+        Title = "Contracts",
         Version = "v1"
     });
 });
