@@ -1,4 +1,4 @@
 ﻿namespace Marketplace.Domain.Shared
 {
-    public delegate bool CheckForProfanity(string text);
+    public delegate bool CheckTextForProfanity(string text);
 }

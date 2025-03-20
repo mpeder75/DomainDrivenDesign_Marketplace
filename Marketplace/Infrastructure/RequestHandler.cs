@@ -6,7 +6,6 @@ namespace Marketplace.Infrastructure
 {
     public class RequestHandler
     {
-
         public static async Task<IActionResult> HandleCommand<T>(T request, Func<T, Task> handler, ILogger log)
         {
             try

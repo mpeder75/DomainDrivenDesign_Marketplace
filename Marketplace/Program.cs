@@ -2,8 +2,10 @@ using Marketplace.ClassifiedAd;
 using Marketplace.Domain.ClassifiedAd;
 using Marketplace.Domain.Services;
 using Marketplace.Domain.Shared;
+using Marketplace.Domain.UserProfile;
 using Marketplace.Framework;
 using Marketplace.Infrastructure;
+using Marketplace.UserProfile;
 using Raven.Client.Documents;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,13 +22,20 @@ var store = new DocumentStore
 };
 store.Initialize();
 
+// Registrerer PurgomalumClient som en singleton
+var purgomalumClient = new PurgomalumClient();
+
 builder.Services.AddSingleton<ICurrencyLookup, FixedCurrencyLookup>();
-// Document store registreres som en singleton
 builder.Services.AddScoped(c => store.OpenAsyncSession());
-// Unit of work registreres som en scoped service
 builder.Services.AddScoped<IUnitOfWork, RavenDbUnitOfWork>();
 builder.Services.AddScoped<IClassifiedAdRepository, ClassifiedAdRepository>();
 builder.Services.AddScoped<ClassifiedAdsApplicationService>();
+
+builder.Services.AddScoped(c =>
+    new UserProfileApplicationService(
+        c.GetService<IUserProfileRepository>(),
+        c.GetService<IUnitOfWork>(),
+        text => purgomalumClient.CheckForProfanity(text).GetAwaiter().GetResult()));
 builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen(c =>
