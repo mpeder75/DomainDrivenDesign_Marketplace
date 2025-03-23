@@ -1,4 +1,4 @@
-﻿namespace Marketplace.Framework.Events;
+﻿namespace Marketplace.Framework;
 
 public interface IInternalEventHandler
 {

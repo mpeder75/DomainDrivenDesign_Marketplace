@@ -4,30 +4,30 @@ public class Contracts
 {
     public static class V1
     {
-        public record RegisterUser
+        public class RegisterUser
         {
             public Guid UserId { get; set; }
             public string FullName { get; set; }
             public string DisplayName { get; set; }
         }
 
-        public record UpdateUserFullName
+        public class UpdateUserFullName
         {
             public Guid UserId { get; set; }
             public string FullName { get; set; }
         }
 
-        public record UpdateUserDisplayName
+        public class UpdateUserDisplayName
         {
             public Guid UserId { get; set; }
             public string DisplayName { get; set; }
+                
         }
 
-        public record UpdateUserProfilePhoto
+        public class UpdateUserProfilePhoto
         {
             public Guid UserId { get; set; }
             public string PhotoUrl { get; set; }
         }
-
     }
 }

@@ -27,9 +27,15 @@
             public string CurrencyCode { get; set; }
         }
 
-        public class ClassifiedAdSentForReview
+        public class ClassidiedAdSentForReview
         {
             public Guid Id { get; set; }
+        }
+
+        public class ClassifiedAdPublished
+        {
+            public Guid Id { get; set; }
+            public Guid ApprovedBy { get; set; }
         }
 
         public class PictureAddedToAClassifiedAd
@@ -39,11 +45,12 @@
             public string Url { get; set; }
             public int Height { get; set; }
             public int Width { get; set; }
-            public int Order { get; set; } // Tilføj Order-egenskaben
+            public int Order { get; set; }
         }
-
+        
         public class ClassifiedAdPictureResized
         {
+            public Guid ClassifiedAdId { get; set; }
             public Guid PictureId { get; set; }
             public int Height { get; set; }
             public int Width { get; set; }

@@ -4,37 +4,37 @@
     {
         public static class V1
         {
-            public record Create
+            public class Create
             {
                 public Guid Id { get; init; }
                 public Guid OwnerId { get; init; }
             }
 
-            public record SetTitle
+            public class SetTitle
             {
                 public Guid Id { get; init; }
                 public string Title { get; init; }
             }
 
-            public record UpdateText
+            public class UpdateText
             {
                 public Guid Id { get; init; }
                 public string Text { get; init; }
             }
 
-            public record UpdatePrice
+            public class UpdatePrice
             {
                 public Guid Id { get; init; }
                 public decimal Price { get; init; }
                 public string Currency { get; init; }
             }
 
-            public record RequestToPublish
+            public class RequestToPublish
             {
                 public Guid Id { get; init; }
             }
 
-            public record Publish
+            public class Publish
             {
                 public Guid Id { get; init; }
                 public Guid ApprovedBy { get; init; }

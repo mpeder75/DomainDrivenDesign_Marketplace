@@ -1,4 +1,4 @@
-﻿namespace Marketplace.Framework.DomainService;
+﻿namespace Marketplace.Framework;
 
 public interface IApplicationService
 {
