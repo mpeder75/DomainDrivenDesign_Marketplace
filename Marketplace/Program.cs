@@ -1,14 +1,23 @@
-using EventStore.ClientAPI;
-
 using Marketplace.ClassifiedAd;
+using Marketplace.Domain.ClassifiedAd;
 using Marketplace.Domain.Services;
 using Marketplace.Domain.Shared;
+using Marketplace.Domain.UserProfile;
 using Marketplace.Framework;
 using Marketplace.Infrastructure;
 using Marketplace.UserProfile;
 using Raven.Client.Documents;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .MinimumLevel.Debug()
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // Load configuration from appsettings.json
 builder.Configuration
@@ -30,35 +39,24 @@ store.Initialize();
 var purgomalumClient = new PurgomalumClient();
 
 builder.Services.AddSingleton<ICurrencyLookup, FixedCurrencyLookup>();
-
 builder.Services.AddScoped(c => store.OpenAsyncSession());
-builder.Services.AddScoped<IAggregateStore, EsAggregateStore>();
+builder.Services.AddScoped<IUnitOfWork, RavenDbUnitOfWork>();
+builder.Services.AddScoped<IClassifiedAdRepository, ClassifiedAdRepository>();
+builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 builder.Services.AddScoped<ClassifiedAdsApplicationService>();
-
 builder.Services.AddScoped(c =>
     new UserProfileApplicationService(
-        c.GetService<IAggregateStore>(),
+        c.GetService<IUserProfileRepository>(),
+        c.GetService<IUnitOfWork>(),
         text => purgomalumClient.CheckForProfanity(text).GetAwaiter().GetResult()));
 
-
-// Configure Event Store connection
-var eventStoreConnectionString = builder.Configuration["eventStore:connectionString"];
-var connectionSettings = ConnectionSettings.Create().KeepReconnecting();
-var eventStoreConnection = EventStoreConnection.Create(eventStoreConnectionString, connectionSettings);
-
-// Ensure the connection is established only once
-await eventStoreConnection.ConnectAsync();
-builder.Services.AddSingleton(eventStoreConnection);
-
 builder.Services.AddControllers();
-
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
-        Title = "Contracts",
+        Title = "ClassifiedAds",
         Version = "v1"
     });
 });
@@ -69,6 +67,8 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
+    app.UseSwaggerUI(c =>
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ClassifiedAds v1"));
 }
 
 app.UseHttpsRedirection();

@@ -1,12 +1,12 @@
 ﻿namespace Marketplace.Framework;
 
 public abstract class AggregateRoot<TId> : IInternalEventHandler
+    where TId : Value<TId>
 {
     public TId Id { get; protected set; }
-    public int Version { get; private set; } = -1;
 
     protected abstract void When(object @event);
-
+        
     private readonly List<object> _changes;
 
     protected AggregateRoot() => _changes = new List<object>();
@@ -19,15 +19,6 @@ public abstract class AggregateRoot<TId> : IInternalEventHandler
     }
 
     public IEnumerable<object> GetChanges() => _changes.AsEnumerable();
-
-    public void Load(IEnumerable<object> history)
-    {
-        foreach (var e in history)
-        {
-            When(e);
-            Version++;
-        }
-    }
 
     public void ClearChanges() => _changes.Clear();
 

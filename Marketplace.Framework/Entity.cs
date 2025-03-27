@@ -20,4 +20,3 @@ public abstract class Entity<TId> : IInternalEventHandler
     void IInternalEventHandler.Handle(object @event) => When(@event);
 }
 
-

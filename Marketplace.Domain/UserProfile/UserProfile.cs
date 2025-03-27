@@ -32,7 +32,6 @@ public class UserProfile : AggregateRoot<UserId>
     {
     }
 
-    // Method to Update FullName
     public void UpdateFullName(FullName fullName)
     {
         Apply(new Events.UserFullNameUpdated
@@ -42,7 +41,6 @@ public class UserProfile : AggregateRoot<UserId>
         });
     }
 
-    // Method to Update DisplayName
     public void UpdateDisplayName(DisplayName displayName)
     {
         Apply(new Events.UserDisplayNameUpdated
@@ -52,7 +50,6 @@ public class UserProfile : AggregateRoot<UserId>
         });
     }
 
-    // Method to Update Profile Photo
     public void UpdateProfilePhoto(Uri photoUrl)
     {
         Apply(new Events.ProfilePhotoUploaded
@@ -62,7 +59,6 @@ public class UserProfile : AggregateRoot<UserId>
         });
     }
 
-    // Metode der styre Events
     protected override void When(object @event)
     {
         switch (@event)

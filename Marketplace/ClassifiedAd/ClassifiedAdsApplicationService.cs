@@ -1,92 +1,90 @@
 ﻿using Marketplace.Domain.ClassifiedAd;
 using Marketplace.Domain.Shared;
 using Marketplace.Framework;
-using static Marketplace.ClassifiedAd.Contracts;
 
 namespace Marketplace.ClassifiedAd;
 
- public class ClassifiedAdsApplicationService : IApplicationService
+ public class ClassifiedAdsApplicationService 
+        : IApplicationService
     {
+        private readonly IClassifiedAdRepository _repository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrencyLookup _currencyLookup;
-        private readonly IAggregateStore _store;
 
         public ClassifiedAdsApplicationService(
-            IAggregateStore store, ICurrencyLookup currencyLookup
+            IClassifiedAdRepository repository, 
+            IUnitOfWork unitOfWork,
+            ICurrencyLookup currencyLookup
         )
         {
+            _repository = repository;
+            _unitOfWork = unitOfWork;
             _currencyLookup = currencyLookup;
-            _store = store;
         }
 
         public Task Handle(object command) =>
             command switch
             {
-                V1.Create cmd =>
+                Contracts.V1.Create cmd =>
                     HandleCreate(cmd),
-                V1.SetTitle cmd =>
+                Contracts.V1.SetTitle cmd =>
                     HandleUpdate(
                         cmd.Id,
                         c => c.SetTitle(
-                            ClassifiedAdTitle
-                                .FromString(cmd.Title)
-                        )
+                            ClassifiedAdTitle.FromString(cmd.Title))
                     ),
-                V1.UpdateText cmd =>
+                Contracts.V1.UpdateText cmd =>
                     HandleUpdate(
                         cmd.Id,
                         c => c.UpdateText(
-                            ClassifiedAdText
-                                .FromString(cmd.Text)
-                        )
+                            ClassifiedAdText.FromString(cmd.Text))
                     ),
-                V1.UpdatePrice cmd =>
+                Contracts.V1.UpdatePrice cmd =>
                     HandleUpdate(
                         cmd.Id,
-                        c => c.UpdatePrice(
-                            Price.FromDecimal(
-                                cmd.Price,
-                                cmd.Currency,
-                                _currencyLookup
-                            )
-                        )
+                        c => c.UpdatePrice(Price.FromDecimal(
+                            cmd.Price, cmd.Currency, _currencyLookup))
                     ),
-                V1.RequestToPublish cmd =>
+                Contracts.V1.RequestToPublish cmd =>
                     HandleUpdate(
                         cmd.Id,
                         c => c.RequestToPublish()
                     ),
-                V1.Publish cmd =>
-                    HandleUpdate(
-                        cmd.Id,
-                        c => c.Publish(new UserId(cmd.ApprovedBy))
-                    ),
+                Contracts.V1.Publish cmd =>
+                    HandleUpdate(cmd.Id, c => c.Publish(
+                        new UserId(cmd.ApprovedBy))),
                 _ => Task.CompletedTask
             };
 
-        private async Task HandleCreate(V1.Create cmd)
+        private async Task HandleCreate(Contracts.V1.Create cmd)
         {
-            if (await _store.Exists<Domain.ClassifiedAd.ClassifiedAd, 
-                ClassifiedAdId>(
-                new ClassifiedAdId(cmd.Id)
-            ))
+            if (await _repository.Exists(cmd.Id.ToString()))
                 throw new InvalidOperationException(
-                    $"Entity with id {cmd.Id} already exists");
+                    $"Entity with id {cmd.Id} already exists"
+                );
 
             var classifiedAd = new Domain.ClassifiedAd.ClassifiedAd(
                 new ClassifiedAdId(cmd.Id),
                 new UserId(cmd.OwnerId)
             );
 
-            await _store.Save<Domain.ClassifiedAd.ClassifiedAd, ClassifiedAdId>(classifiedAd);
+            await _repository.Add(classifiedAd);
+            await _unitOfWork.Commit();
         }
 
-        private Task HandleUpdate(
-            Guid id,
-            Action<Domain.ClassifiedAd.ClassifiedAd> update
-        ) =>
-            this.HandleUpdate(
-                _store,
-                new ClassifiedAdId(id),
-                update
-            );
+        private async Task HandleUpdate(Guid classifiedAdId, 
+            Action<Domain.ClassifiedAd.ClassifiedAd> operation
+        )
+        {
+            var classifiedAd = await _repository
+                .Load(classifiedAdId.ToString());
+            if (classifiedAd == null)
+                throw new InvalidOperationException(
+                    $"Entity with id {classifiedAdId} cannot be found"
+                );
+
+            operation(classifiedAd);
+
+            await _unitOfWork.Commit();
+        }
     }

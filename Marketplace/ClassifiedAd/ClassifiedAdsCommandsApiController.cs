@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using ILogger = Serilog.ILogger;
 
 [Route("/ad")]
-public class ClassifiedAdsCommandsApi : Controller
+public class ClassifiedAdsCommandsApiController: Controller
 {
     private readonly ClassifiedAdsApplicationService _applicationService;
-    private static readonly ILogger Log = Serilog.Log.ForContext<ClassifiedAdsCommandsApi>();
+    private static readonly ILogger Log = Serilog.Log.ForContext<ClassifiedAdsCommandsApiController>();
 
-    public ClassifiedAdsCommandsApi(
+    public ClassifiedAdsCommandsApiController(
         ClassifiedAdsApplicationService applicationService)
         => _applicationService = applicationService;
 

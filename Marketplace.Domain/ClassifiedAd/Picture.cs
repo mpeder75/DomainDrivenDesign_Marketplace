@@ -1,7 +1,7 @@
-﻿using Marketplace.Framework;
+﻿using Marketplace.Domain.UserProfile;
+using Marketplace.Framework;
 
 namespace Marketplace.Domain.ClassifiedAd;
-
 public class Picture : Entity<PictureId>
 {
     public ClassifiedAdId ParentId { get; private set; }

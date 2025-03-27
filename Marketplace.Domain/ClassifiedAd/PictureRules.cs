@@ -1,10 +1,11 @@
-﻿
-namespace Marketplace.Domain.ClassifiedAd;
+﻿namespace Marketplace.Domain.ClassifiedAd;
 
-    public static class PictureRules
+public static class PictureRules
+{
+    public static bool HasCorrectSize(this Picture picture)
     {
-        public static bool HasCorrectSize(this Picture picture)
-            => picture != null 
-               && picture.Size.Width >= 800 
+        return picture != null
+               && picture.Size.Width >= 800
                && picture.Size.Height >= 600;
     }
+}

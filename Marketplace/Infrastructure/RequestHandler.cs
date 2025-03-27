@@ -4,9 +4,8 @@ using ILogger = Serilog.ILogger;
 
 namespace Marketplace.Infrastructure
 {
-    public class RequestHandler
+    public static class RequestHandler
     {
-        // Metode der håndterer requests til commands
         public static async Task<IActionResult> HandleCommand<T>(
             T request, Func<T, Task> handler, ILogger log)
         {
@@ -25,7 +24,7 @@ namespace Marketplace.Infrastructure
                 });
             }
         }
-        // Metode der håndterer requests til reads
+
         public static async Task<IActionResult> HandleQuery<TModel>(
             Func<Task<TModel>> query, ILogger log)
         {
@@ -44,3 +43,4 @@ namespace Marketplace.Infrastructure
         }
     }
 }
+
