@@ -5,13 +5,6 @@ namespace Marketplace.Domain.UserProfile;
 
 public class UserProfile : AggregateRoot<UserId>
 {
-    // Properties to handle the persistence
-    private string DbId
-    {
-        get => $"UserProfile/{Id.Value}";
-        set { }
-    }
-
     // Aggregate state properties
     public FullName FullName { get; private set; }
     public DisplayName DisplayName { get; private set; }

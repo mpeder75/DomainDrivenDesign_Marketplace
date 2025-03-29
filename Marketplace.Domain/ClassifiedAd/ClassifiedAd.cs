@@ -5,13 +5,6 @@ namespace Marketplace.Domain.ClassifiedAd;
 
 public class ClassifiedAd : AggregateRoot<ClassifiedAdId>
     {
-        // Properties to handle the persistence
-        private string DbId
-        {
-            get => $"ClassifiedAd/{Id.Value}";
-            set {}
-        }
-        
         // Aggregate state properties
         public UserId OwnerId { get; private set; }
         public ClassifiedAdTitle Title { get; private set; }
@@ -19,7 +12,7 @@ public class ClassifiedAd : AggregateRoot<ClassifiedAdId>
         public Price Price { get; private set; }
         public ClassifiedAdState State { get; private set; }
         public UserId ApprovedBy { get; private set; }
-        public List<Picture> Pictures { get; }
+        public List<Picture> Pictures { get; private set; }
 
         public ClassifiedAd(ClassifiedAdId id, UserId ownerId)
         {
@@ -57,10 +50,14 @@ public class ClassifiedAd : AggregateRoot<ClassifiedAdId>
             Apply(new Events.ClassidiedAdSentForReview {Id = Id});
         
         public void Publish(UserId userId) =>
-            Apply(new Events.ClassifiedAdPublished {Id = Id, ApprovedBy = userId});
+            Apply(new Events.ClassifiedAdPublished
+            {
+                Id = Id, 
+                ApprovedBy = userId,
+                OwnerId = OwnerId
+            });
         
-        public void AddPicture(Uri pictureUri, PictureSize size)
-        {
+        public void AddPicture(Uri pictureUri, PictureSize size) =>
             Apply(new Events.PictureAddedToAClassifiedAd
             {
                 PictureId = new Guid(),
@@ -68,11 +65,8 @@ public class ClassifiedAd : AggregateRoot<ClassifiedAdId>
                 Url = pictureUri.ToString(),
                 Height = size.Height,
                 Width = size.Width,
-                Order = NewPictureOrder()
+                Order = Pictures.Max(x => x.Order)
             });
-            
-            int NewPictureOrder() => Pictures.Any() ? Pictures.Max(x => x.Order) + 1 : 0;
-        }
 
         public void ResizePicture(PictureId pictureId, PictureSize newSize)
         {
@@ -93,6 +87,7 @@ public class ClassifiedAd : AggregateRoot<ClassifiedAdId>
                     Id = new ClassifiedAdId(e.Id);
                     OwnerId = new UserId(e.OwnerId);
                     State = ClassifiedAdState.Inactive;
+                    Pictures = new List<Picture>();
                     break;
                 case Events.ClassifiedAdTitleChanged e:
                     Title = new ClassifiedAdTitle(e.Title);
@@ -127,31 +122,33 @@ public class ClassifiedAd : AggregateRoot<ClassifiedAdId>
         private Picture FindPicture(PictureId id)
             => Pictures.FirstOrDefault(x => x.Id == id);
 
-        private Picture FirstPicture => 
-            Pictures.OrderBy(x => x.Order)
-                .FirstOrDefault();
+        private Picture FirstPicture => Pictures.OrderBy(x => x.Order).FirstOrDefault();
 
         protected override void EnsureValidState()
         {
-            var valid = Id != null && OwnerId != null &&
-            (State switch
-            {
-                ClassifiedAdState.PendingReview =>
-                    Title != null
-                    && Text != null
-                    && Price?.Amount > 0,
-                ClassifiedAdState.Active =>
-                    Title != null
-                    && Text != null
-                    && Price?.Amount > 0
-                    && ApprovedBy != null,
-                _ => true
-            });
+            var valid =
+                Id != null &&
+                OwnerId != null &&
+                (State switch
+                {
+                    ClassifiedAdState.PendingReview =>
+                        Title != null
+                        && Text != null
+                        && Price?.Amount > 0,
+                    ClassifiedAdState.Active =>
+                        Title != null
+                        && Text != null
+                        && Price?.Amount > 0
+                        && ApprovedBy != null,
+                    _ => true
+                });
 
             if (!valid)
-                throw new DomainExceptions.InvalidEntityState(this, 
-                    $"Post-checks failed in state {State}");
+                throw new DomainExceptions.InvalidEntityState(
+                    this, $"Post-checks failed in state {State}");
         }
+        
+        protected ClassifiedAd() { }
 
         public enum ClassifiedAdState
         {

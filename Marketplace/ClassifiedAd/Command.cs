@@ -1,5 +1,6 @@
-﻿namespace Marketplace.ClassifiedAd
-{public static class Contracts
+﻿namespace Marketplace.ClassifiedAd;
+
+public static class Contracts
     {
         public static class V1
         {
@@ -38,6 +39,14 @@
                 public Guid Id { get; set; }
                 public Guid ApprovedBy { get; set; }
             }
+
+            public class ClassifiedAdPublished
+            {
+                public Guid Id { get; set; }
+                public string SellersPhotoUrl { get; set; }
+                // You might need additional properties such as OwnerId and ApprovedBy
+                // based on other uses of this class in your application
+            }
         }
     }
-}
+

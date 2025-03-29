@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using ILogger = Serilog.ILogger;
 
 namespace Marketplace.UserProfile;
-
 [Route("/profile")]
 public class UserProfileCommandsApi : Controller
 {

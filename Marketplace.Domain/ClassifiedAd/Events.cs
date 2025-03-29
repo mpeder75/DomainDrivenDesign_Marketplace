@@ -35,6 +35,7 @@ public static class Events
     public class ClassifiedAdPublished
     {
         public Guid Id { get; set; }
+        public Guid OwnerId { get; set; }
         public Guid ApprovedBy { get; set; }
     }
 
@@ -47,7 +48,7 @@ public static class Events
         public int Width { get; set; }
         public int Order { get; set; }
     }
-        
+
     public class ClassifiedAdPictureResized
     {
         public Guid ClassifiedAdId { get; set; }

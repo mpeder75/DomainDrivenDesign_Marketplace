@@ -1,50 +1,71 @@
 using EventStore.ClientAPI;
+using Marketplace;
 using Marketplace.ClassifiedAd;
 using Marketplace.Domain.Services;
-using Marketplace.Domain.Shared;
 using Marketplace.Framework;
 using Marketplace.Infrastructure;
+using Marketplace.Projections;
 using Marketplace.UserProfile;
 using Microsoft.OpenApi.Models;
+using Raven.Client.Documents;
+using Raven.Client.Documents.Session;
+using Raven.Client.ServerWide;
+using Raven.Client.ServerWide.Operations;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
     .MinimumLevel.Debug()
+    .WriteTo.Console()
     .CreateLogger();
 
 builder.Host.UseSerilog();
 
-// Load configuration from appsettings.json
-builder.Configuration
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", false, true)
-    .Build();
+// Configure services
+var services = builder.Services;
+var configuration = builder.Configuration;
+var environment = builder.Environment;
 
-// Configure EventStore connection
+// EventStore setup
 var esConnection = EventStoreConnection.Create(
-    builder.Configuration["eventStore:connectionString"],
+    configuration["eventStore:connectionString"],
     ConnectionSettings.Create().KeepReconnecting(),
-    "Marketplace");
-
-// Register services
+    environment.ApplicationName);
 var store = new EsAggregateStore(esConnection);
 var purgomalumClient = new PurgomalumClient();
 
-builder.Services.AddSingleton(esConnection);
-builder.Services.AddSingleton<IAggregateStore>(store);
-builder.Services.AddSingleton<ICurrencyLookup, FixedCurrencyLookup>();
-builder.Services.AddSingleton(new ClassifiedAdsApplicationService(
-    store, new FixedCurrencyLookup()));
-builder.Services.AddSingleton(new UserProfileApplicationService(
-    store, text => purgomalumClient.CheckForProfanity(text).GetAwaiter().GetResult()));
-builder.Services.AddSingleton<IHostedService, EventStoreService>();
+// RavenDB setup
+var documentStore = ConfigureRavenDb(configuration.GetSection("ravenDb"));
+var getSession = () => documentStore.OpenAsyncSession();
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+services.AddTransient(c => getSession());
+services.AddSingleton(esConnection);
+services.AddSingleton<IAggregateStore>(store);
+
+// Application services
+services.AddSingleton(new ClassifiedAdsApplicationService(
+    store, new FixedCurrencyLookup()));
+services.AddSingleton(new UserProfileApplicationService(
+    store, text => purgomalumClient.CheckForProfanity(text).GetAwaiter().GetResult()));
+
+// Projections
+var projectionManager = new ProjectionManager(esConnection,
+    new RavenDbCheckpointStore(getSession, "readmodels"),
+    new ClassifiedAdDetailsProjection(getSession,
+        async userId => (await getSession.GetUserDetails(userId))?.DisplayName),
+    new ClassifiedAdUpcasters(esConnection,
+        async userId => (await getSession.GetUserDetails(userId))?.PhotoUrl),
+    new UserDetailsProjection(getSession));
+
+services.AddSingleton<IHostedService>(
+    new EventStoreService(esConnection, projectionManager));
+
+// API and Swagger
+services.AddControllers();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
@@ -53,17 +74,47 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// Build the app
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// Configure the HTTP request pipeline
+if (app.Environment.IsDevelopment()) app.UseDeveloperExceptionPage();
+
+app.UseRouting();
+
+app.UseSwagger();
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "ClassifiedAds v1"));
+
+app.MapControllers();
+
+// Start the application
+await app.RunAsync();
+
+// Helper method for RavenDB configuration
+static IDocumentStore ConfigureRavenDb(IConfiguration configuration)
 {
-    app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ClassifiedAds v1"));
+    var store = new DocumentStore
+    {
+        Urls = new[] { configuration["server"] },
+        Database = configuration["database"]
+    };
+    store.Initialize();
+    var record = store.Maintenance.Server.Send(
+        new GetDatabaseRecordOperation(store.Database));
+    if (record == null)
+        store.Maintenance.Server.Send(
+            new CreateDatabaseOperation(new DatabaseRecord(store.Database)));
+
+    return store;
 }
 
-app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
-app.Run();
+// Extension method for user details retrieval
+public static class SessionExtensions
+{
+    public static async Task<ReadModels.UserDetails> GetUserDetails(
+        this Func<IAsyncDocumentSession> getSession, Guid userId)
+    {
+        using var session = getSession();
+        return await session.LoadAsync<ReadModels.UserDetails>(userId.ToString());
+    }
+}

@@ -6,19 +6,21 @@ using static Marketplace.UserProfile.Contracts;
 
 namespace Marketplace.UserProfile;
 
- public class UserProfileApplicationService : IApplicationService
+  public class UserProfileApplicationService
+        : IApplicationService
     {
         private readonly IAggregateStore _store;
         private readonly CheckTextForProfanity _checkText;
-        
+
         public UserProfileApplicationService(
             IAggregateStore store,
-            CheckTextForProfanity checkText)
+            CheckTextForProfanity checkText
+        )
         {
             _store = store;
             _checkText = checkText;
         }
-        
+
         public Task Handle(object command) =>
             command switch
             {
@@ -44,33 +46,40 @@ namespace Marketplace.UserProfile;
                 V1.UpdateUserProfilePhoto cmd =>
                     HandleUpdate(
                         cmd.UserId,
-                        profile => profile.UpdateProfilePhoto(
-                            new Uri(cmd.PhotoUrl)
-                        )
+                        profile => profile
+                            .UpdateProfilePhoto(
+                                new Uri(cmd.PhotoUrl)
+                            )
                     ),
                 _ => Task.CompletedTask
             };
-            
+
         private async Task HandleCreate(V1.RegisterUser cmd)
         {
-            if (await _store.Exists<Domain.UserProfile.UserProfile, UserId>(
-                new UserId(cmd.UserId)))
+            if (await _store
+                .Exists<Domain.UserProfile.UserProfile, UserId>(
+                    new UserId(cmd.UserId)
+                ))
                 throw new InvalidOperationException(
                     $"Entity with id {cmd.UserId} already exists"
                 );
-                
+
             var userProfile = new Domain.UserProfile.UserProfile(
                 new UserId(cmd.UserId),
                 FullName.FromString(cmd.FullName),
                 DisplayName.FromString(cmd.DisplayName, _checkText)
             );
-            
-            await _store.Save<Domain.UserProfile.UserProfile, UserId>(userProfile);
+
+            await _store
+                .Save<Domain.UserProfile.UserProfile, UserId>(
+                    userProfile
+                );
         }
-        
+
         private Task HandleUpdate(
             Guid id,
-            Action<Domain.UserProfile.UserProfile> update) =>
+            Action<Domain.UserProfile.UserProfile> update
+        ) =>
             this.HandleUpdate(
                 _store,
                 new UserId(id),

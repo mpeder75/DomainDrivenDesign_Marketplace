@@ -1,7 +1,6 @@
 ﻿using Marketplace.Framework;
 
 namespace Marketplace.Domain.ClassifiedAd;
-
 public class ClassifiedAdId : Value<ClassifiedAdId>
 {
     public Guid Value { get; }
