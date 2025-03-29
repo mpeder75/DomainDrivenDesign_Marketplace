@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Marketplace.Framework;
 
-public abstract class Value<T> where T : Value<T>
+ public abstract class Value<T> where T : Value<T>
     {
         [SuppressMessage("ReSharper", "StaticMemberInGenericType")]
         private static readonly Member[] Members = GetMembers().ToArray();
